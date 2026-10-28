@@ -1,0 +1,258 @@
+<html>
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <link rel="icon" href="https://cdn.appsflyer.com/af-statics/images/favicon.ico" type="image/x-icon"/>
+    <link rel="apple-touch-icon" href="https://cdn.appsflyer.com/af-statics/images/favicon.png" type="image/png"/>
+    <link rel="icon" href="https://cdn.appsflyer.com/af-statics/images/favicon.png" type="image/png"/>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <title>What is it? AB version</title>
+    <style type="text/css">
+      body {
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-family: Helvetica, Arial, Verdana, sans-serif;
+        background-color: #f5f6f8;
+      }
+      .container {
+        min-width: 280px;
+        background: white;
+        border: 1px solid #e8e8e8;
+        border-radius: 4px;
+        padding: 30px;
+        margin: 20px;
+      }
+      .app-info {
+        display: flex;
+        align-items: center;
+      }
+      .logo {
+        margin-right: 15px;
+        height: 60px;
+      }
+      .logo img {
+        width: 60px;
+        border: 1px solid #e8e8e8;
+        border-radius: 4px;
+      }
+
+      .placeholder {
+        width: 60px;
+        height: 60px;
+        border: 1px solid #e8e8e8;
+        border-radius: 4px;
+        background: #e8e8e8;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .placeholder-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #47525d;
+      }
+
+      .placeholder-dot + .placeholder-dot {
+        margin-left: 5px;
+      }
+
+      .app-name {
+        font-size: 15px;
+        line-height: 18px;
+        color: #39434e;
+      }
+
+      .button {
+        display: block;
+        padding: 10px;
+        margin-top: 20px;
+        font-size: 15px;
+        text-align: center;
+        text-decoration: none;
+        color: white;
+        font-weight: bold;
+        border-radius: 4px;
+        background: #1b71bd;
+      }
+
+      .button + .button {
+        margin-top: 10px;
+      }
+      @media screen and (max-device-width: 480px) {
+        body {
+          -webkit-text-size-adjust: none;
+        }
+      }
+    </style>
+    <script type="text/javascript">
+      // 8322e93780eff2f30cdf0898b1559339
+// LANGUAGES
+var lang = navigator.language;
+var lang_device = {'en-US': 'Go to the app', 'zh-CN': '前往应用', 'zh-TW': '前往應用', 'ja': 'アプリに移動', 'ja-JP': 'アプリに移動'};
+var text_on_btn = null;
+
+init = function () {
+	var store_link = 'market://details?id\u003Dcom.lta.whatisit\u0026referrer\u003Daf_dp%3Dwhatisitapp%253A%252F%252F%26deep_link_sub1%3Dtest1%26pid%3Dtest1%26af_tranid%3DMTc1Mzc2MzExODQxNDQ3MDUyMTI%3D%26deep_link_value%3Dtest1';
+	var web_store_link = 'null';
+	var brand_store_link = 'null';
+	var full_package_name = 'com.lta.whatisit';
+	var app_link = 'whatisitapp://?af_deeplink\u003Dtrue\u0026af_dp\u003Dwhatisitapp%3A%2F%2F\u0026af_xp\u003Dcustom\u0026campaign\u003DNone\u0026deep_link_sub1\u003Dtest1\u0026deep_link_value\u003Dtest1\u0026media_source\u003Dtest1\u0026onelink_id\u003DOJTm\u0026shortlink\u003Dt4t75f68\u0026source_caller\u003Dui';
+	var browser_support_intent = 'null';
+	var stop_custom_redirection = false;
+	var redirect_timeout_int = 800;
+	var is_android = (navigator.userAgent.indexOf('Android') > -1);
+
+	//For intent
+	var index_of_last_dash = full_package_name.lastIndexOf('-');
+	var package_name = index_of_last_dash < 0 ? full_package_name : full_package_name.slice(0, index_of_last_dash);
+	var parts = app_link.split('://');
+	var scheme = parts[0];
+	var data = parts.slice(1).join('://');
+	var store_url = store_link.indexOf('market://') == 0 ? 'https://play.google.com/store/apps/' + store_link.substring(9) : store_link;
+	var store_link_encoded = encodeURI(store_url);
+	var appsflyer_click_ts = Date.now();
+
+	if (!lang_device.hasOwnProperty(lang)) {
+		lang = 'en-US';
+	}
+	text_on_btn = lang_device[lang];
+	document.getElementById('open').innerText = text_on_btn;
+
+
+	document.addEventListener('visibilitychange', function () {
+		if (!is_custom_redirection() || is_visible()) {
+			back_or_close();
+		} else {
+			stop_custom_redirection = true;
+		}
+	});
+
+	function back_or_close() {
+		if (window.history.length > 1) {
+			window.history.go(-1); // go back to previous page
+		} else {
+			window.close();
+		}
+	}
+
+	function is_custom_redirection() {
+		return (store_link.startsWith("http") && !store_link.startsWith("https://apps.apple.com"));
+	}
+
+	function is_branded_store_enabled() {
+		return (brand_store_link !== 'null');
+	}
+
+	function is_web_store_enabled() {
+		return (web_store_link.indexOf("http") > 0);
+	}
+
+	function is_browser_support_intent(){
+		return (browser_support_intent !== 'null')
+	}
+
+	function redirect_to_default_store() {
+		if (!document.hidden) {
+			window.location.href = store_link;
+		}
+	}
+
+	function redirect_to_custom_store() {
+		if (!document.hidden) {
+			if (!stop_custom_redirection) {
+				window.location.replace(store_link);
+			}
+		}
+	}
+
+	function redirect_to_web_store() {
+		if (!document.hidden) {
+			window.location.href = web_store_link;
+		}
+	}
+
+	function redirect_to_branded_store(){
+		window.location.href = brand_store_link;
+		setTimeout(redirect_to_default_store, redirect_timeout_int + 1000);
+	}
+
+	function redirect_to_store() {
+		if (!document.hidden) {
+			if (is_branded_store_enabled()) {
+				redirect_to_branded_store();
+			} else if (is_custom_redirection()) {
+				redirect_to_custom_store();
+			} else {
+				if (is_web_store_enabled() && !is_android) {
+					redirect_to_web_store();
+				} else {
+					redirect_to_default_store();
+				}
+			}
+		}
+	}
+
+	function create_intent() {
+		var intent_url = 'intent://' + data + '#Intent;scheme=' + scheme + ';l.appsflyer_click_ts=' + appsflyer_click_ts + ';end';
+		return intent_url
+	}
+
+	var open_url = app_link;
+
+	if(is_browser_support_intent()) {
+		open_url = create_intent();
+	}
+	window.location.href = open_url;
+
+	document.getElementById('open').addEventListener("click", redirect_to_store);
+}
+
+window.addEventListener('DOMContentLoaded', (event) => {
+	init();
+});
+    </script>
+  </head>
+  <body onload="init();">
+    <main class="container">
+      <section class="app-info">
+        <div class="logo" id="logo"></div>
+        <div><div class="app-name">What is it? AB version</div></div>
+      </section>
+<!--      <a class="button" id="open" href="#" target="_blank"></a>-->
+      <div class="button" id="open"></div>
+    </main>
+    <script type="text/javascript">
+      // 9841285b3d53feb89b86490b34ffeeee
+        var encodedIcon = encodeURI("https://cdnappicons.appsflyer.com/com.lta.whatisit.905a1de0-f895-4fa0-9aea-601d557d318c.png");
+        var logoElement = document.getElementById("logo");
+      if (encodedIcon.indexOf("http") > -1) {
+        var imgElement = document.createElement("IMG");
+        imgElement.setAttribute("src", encodedIcon);
+        imgElement.setAttribute("src", encodedIcon);
+        imgElement.setAttribute("onclick", "redirect_to_web_store(loc)");
+        logoElement.appendChild(imgElement);
+      } else {
+        var placeholderElement = document.createElement("DIV");
+        placeholderElement.setAttribute("class", "placeholder");
+
+        for (var i = 0; i < 3; i++) {
+          var placeholderDot = document.createElement("DIV");
+          placeholderDot.setAttribute("class", "placeholder-dot");
+          placeholderElement.appendChild(placeholderDot);
+        }
+        logoElement.appendChild(placeholderElement);
+      }
+    </script>
+  </body>
+</html>
+
+</html>
