@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Threads popup probe</title>
+<style>
+  body { font-family: -apple-system, Roboto, sans-serif; margin: 12px; background: #fff; color: #111; }
+  h1 { font-size: 18px; margin: 0 0 8px; }
+  .row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  button { font-size: 15px; padding: 10px 14px; }
+  #status { font-weight: bold; margin-bottom: 8px; }
+  pre { background: #f3f3f3; padding: 8px; font-size: 12px; white-space: pre-wrap; word-break: break-all; max-height: 70vh; overflow: auto; }
+  small { color: #555; }
+</style>
+</head>
+<body>
+<h1>Threads popup probe (DELIVERY-131981)</h1>
+<div class="row">
+  <button id="trigger">Trigger scheme (iframe)</button>
+  <button id="triggerLoc">Trigger scheme (location)</button>
+  <button id="copy">Copy log</button>
+  <button id="clear">Clear</button>
+</div>
+<div id="status">auto-trigger in 1.5 s…</div>
+<small>Scheme: <code id="scheme"></code></small>
+<pre id="log"></pre>
+
+<script>
+(function () {
+  var SCHEME = 'whatisitapp://?af_deeplink=true&af_probe=' + Date.now();
+  var AUTO_DELAY = 1500;
+  var t0 = performance.now();
+  var out = document.getElementById('log');
+  var statusEl = document.getElementById('status');
+  document.getElementById('scheme').textContent = SCHEME;
+
+  function ts() { return (performance.now() - t0).toFixed(0).padStart(6, ' ') + ' ms'; }
+  function state() {
+    return 'hidden=' + document.hidden +
+      ' vis=' + document.visibilityState +
+      ' hasFocus=' + document.hasFocus();
+  }
+  function log(msg) {
+    var line = ts() + '  ' + msg + '  [' + state() + ']';
+    out.textContent += line + '\n';
+    out.scrollTop = out.scrollHeight;
+  }
+
+  log('UA: ' + navigator.userAgent);
+  log('load');
+
+  // --- event listeners ---
+  ['blur', 'focus', 'pagehide', 'pageshow', 'freeze', 'resume', 'beforeunload', 'unload']
+    .forEach(function (ev) {
+      window.addEventListener(ev, function (e) { log('window.' + ev); });
+    });
+  ['visibilitychange', 'freeze', 'resume'].forEach(function (ev) {
+    document.addEventListener(ev, function () { log('document.' + ev); });
+  });
+  document.addEventListener('focusin', function () { log('document.focusin'); });
+  document.addEventListener('focusout', function () { log('document.focusout'); });
+  window.addEventListener('touchstart', function () { log('touchstart'); }, { passive: true });
+
+  // --- hasFocus poll: log on change, plus a heartbeat every 1 s ---
+  var lastFocus = document.hasFocus();
+  var lastHidden = document.hidden;
+  var tick = 0;
+  setInterval(function () {
+    var f = document.hasFocus();
+    var h = document.hidden;
+    if (f !== lastFocus) { log('POLL hasFocus changed ' + lastFocus + ' -> ' + f); lastFocus = f; }
+    if (h !== lastHidden) { log('POLL hidden changed ' + lastHidden + ' -> ' + h); lastHidden = h; }
+    if (++tick % 10 === 0) log('heartbeat');
+  }, 100);
+
+  // --- scheme triggers ---
+  function triggerIframe() {
+    var old = document.getElementById('probeFrame');
+    if (old) old.remove();
+    var f = document.createElement('iframe');
+    f.id = 'probeFrame';
+    f.style.display = 'none';
+    f.onload = function () { log('iframe.onload'); };
+    f.onerror = function () { log('iframe.onerror'); };
+    document.body.appendChild(f);
+    log('TRIGGER iframe.src = scheme');
+    f.src = SCHEME;
+    statusEl.textContent = 'scheme loaded via iframe — answer the popup (or wait)';
+  }
+  function triggerLocation() {
+    log('TRIGGER window.location = scheme');
+    statusEl.textContent = 'scheme loaded via location — answer the popup (or wait)';
+    window.location.href = SCHEME;
+  }
+
+  document.getElementById('trigger').onclick = triggerIframe;
+  document.getElementById('triggerLoc').onclick = triggerLocation;
+  document.getElementById('clear').onclick = function () { out.textContent = ''; t0 = performance.now(); };
+  document.getElementById('copy').onclick = function () {
+    var txt = out.textContent;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(function () { statusEl.textContent = 'copied'; },
+        function () { fallbackCopy(txt); });
+    } else { fallbackCopy(txt); }
+  };
+  function fallbackCopy(txt) {
+    var ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); statusEl.textContent = 'copied'; } catch (e) { statusEl.textContent = 'copy failed, long-press to select'; }
+    ta.remove();
+  }
+
+  // Mirror dp_android_scheme.js: fire the scheme shortly after load.
+  setTimeout(triggerIframe, AUTO_DELAY);
+})();
+</script>
+</body>
+</html>
